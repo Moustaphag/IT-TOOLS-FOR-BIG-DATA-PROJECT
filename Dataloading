@@ -3,7 +3,7 @@
 create DATABASE IF NOT EXISTS db20151101;
 USE db20151101;
 
--- Creation of the table catalogue a loading of the data
+-- Creation of the table catalogue and loading of the data
 
 DROP TABLE IF EXISTS catalogue;
 CREATE TABLE catalogue (ProductColorId INT, 
