@@ -1,0 +1,362 @@
+-- creation of a Database for the day 20151101
+
+-- create DATABASE IF NOT EXISTS db22;
+-- USE db22;
+
+-- Creation of the table catalogue and loading of the data
+
+-- ${table1}=catalogue, ${table2}=customer, order1, reference, variant
+-- ${path1}="/user/hue/data_tool/catalogue/", "/user/hue/data_tool/customer/", "/user/hue/data_tool/order1/", "/user/hue/data_tool/reference/", "/user/hue/data_tool/variant/"
+
+
+DROP TABLE IF EXISTS ${table1};
+CREATE EXTERNAL TABLE ${table1} (ProductColorId INT, 
+                      GenderLabel STRING,
+                      SupplierColorLabel STRING, 
+                      SeasonLabel STRING)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\073' 
+STORED AS TEXTFILE
+LOCATION ${path1}
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+-- Creation of the table customer
+DROP TABLE IF EXISTS ${table2};
+CREATE EXTERNAL TABLE ${table2} (CustomerId INT,
+                       DomainCode STRING,
+                       BirthDate DATE,
+                       Gender STRING,
+                       Size int)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\073' 
+STORED AS TEXTFILE
+LOCATION ${path2}
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+-- Creation of the table order
+DROP TABLE IF EXISTS ${table3};
+CREATE EXTERNAL TABLE ${table3} (OrderNumber int,
+                    VariantId int, 
+                    CustomerId int,
+                    Quantity int,
+                    UnitPrice int,
+                    OrderCreationDate Date)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\073' 
+STORED AS TEXTFILE
+LOCATION ${path3}
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+-- Creation of the table reference
+
+DROP TABLE IF EXISTS ${table4};
+CREATE EXTERNAL TABLE ${table4} (VariantId int,
+                    ProductColorId int,
+                    ProductId int)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\073' 
+STORED AS TEXTFILE
+LOCATION ${path4}
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+-- Create the data variant
+
+DROP TABLE IF EXISTS ${table5};
+CREATE EXTERNAL TABLE ${table5} (VariantId int,
+                      MinSize int,	MaxSize int,
+                      Size String)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\073' 
+STORED AS TEXTFILE
+LOCATION ${path5}
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+
+--------------------------------------------------------------------  Table queries 
+
+-- Creation of the table productreference
+
+DROP TABLE IF EXISTS productreference;
+create table ProductReference as SELECT variantid, productcolorid FROM reference ;
+
+-- Creation of the table customerdescription
+
+DROP TABLE IF EXISTS customerdescription;
+create table customerdescription as 
+	SELECT customerid as userid, gender, size, domaincode
+	FROM customer;
+
+-- Creation of the table productdescription
+
+DROP TABLE IF EXISTS productdescription;
+CREATE TABLE productdescription AS 
+	SELECT productcolorid, genderlabel as gender, suppliercolorlabel as color
+	FROM catalogue;
+
+-- Creation of the table purchase description from the provide datasets
+
+DROP TABLE IF EXISTS purchasedescription;
+CREATE TABLE purchasedescription AS 
+	SELECT a.customerid AS userid, 
+		   b.productid AS productid, 
+		   ordercreationdate AS purchasedatetime, 
+		   quantity,
+		   unitprice
+	FROM order1 AS a 
+	JOIN reference AS b 
+	ON (a.variantid=b.variantid);
+
+
+
+
+---------- the query for aggregate the table product
+-- ${table6}= prodagg
+-- ${path6}= "/user/hue/data_tool/result_product/", 
+
+
+DROP TABLE IF EXISTS ${table6};
+CREATE TABLE IF NOT EXISTS ${table6}
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY ',' 
+STORED AS TEXTFILE
+LOCATION  ${path6}
+ AS
+  SELECT productid, SUM(quantity*unitprice) AS totalAmount, 
+	   SUM(quantity) AS totalquantity, COUNT(DISTINCT userid) AS DistinctUserNB
+	FROM purchasedescription
+	GROUP BY productid;
+
+-----
+
+--  for gender take by the order Femme-Homme-Enfant-Sacs-Accessories  (descending priority) 
+--  for the size take the maximal size
+
+
+-- first we are creating a table transit
+-- this table have all the element that we will need for create the customer aggregation table
+
+Drop table if exists transit;
+create table transit as
+SELECT 	o.customerid , o.ordercreationdate ordate, d.maxPurchasedate lastPurchdate,
+		c.genderlabel gender,
+		v.size size
+FROM 
+order1 as o
+join 
+reference as r on (o.variantid=r.variantid)
+join 
+catalogue as c on (r.productcolorid=c.productcolorid)
+join 
+variant as v on (v.variantid=r.variantid)
+
+-- Table for compute and return the last purchase date
+
+join (select userid, max(purchasedatetime) maxPurchasedate 
+			from purchasedescription
+			group by userid) d  
+on (d.userid=o.customerid)
+
+order by (o.customerid);
+
+
+-- For create the aggregation table we proceed in several step
+
+-- First counting for each customer the product that he bought, and select the ones that have maximal number of purchase
+-- that give us the table next1 
+
+Drop table if exists next1;
+create table next1 as
+select q1.customerid, q2.gender, maxgender
+from
+	(
+	  from
+		(
+			SELECT customerid, gender, count(gender) totalgender
+			From Transit
+		  	group by customerid, gender
+	  	) e
+	   select e.customerid, max(totalgender) maxgender
+	   group by customerid
+	) q1
+join
+	(
+	  SELECT customerid, gender, count(gender) totalgender
+	  From Transit
+	  group by customerid, gender
+	) q2
+on (q1.customerid=q2.customerid)
+where (totalgender=maxgender);
+
+-- Second from the table next1 we will consider a tie for the product that was purchased the last time
+Drop table if exists dom_gen1;
+create table dom_gen1 as
+select q2.userid as userr, q2.dgender as gender, totalgender, tmp.day as lastpurchasedate
+from
+	(
+	  SELECT distinct n.customerid userid, n.gender dgender, totalgender, 
+	  maxgender, ordate, lastpurchdate, t.gender
+	  from
+		next1 n 
+	  	join 
+	  	transit t 
+	  	on        (n.customerid=t.customerid and n.gender=t.gender) 
+	  ) q2 
+join ( Select user1, max(lastpurchdate) day
+	   from 
+	  		(
+			SELECT distinct n.customerid user1, n.gender dgender, totalgender, 
+	  		maxgender, ordate, lastpurchdate, t.gender
+			from
+			next1 n join transit t on (n.customerid=t.customerid and n.gender=t.gender) 
+			) q1
+	  	group by user1
+	  ) tmp
+
+on q2.userid=tmp.user1 and q2.lastpurchdate=tmp.day;
+
+
+--3 third after considering the tie break with date, 
+-- we will rank the gender and then we will keep for each customer the gender that have the minimal rank.
+
+-- This query is for create a column rank that give a rank to each gender
+DROP TABLE IF EXISTS gender_Rank;
+CREATE TABLE gender_Rank AS
+SELECT userr,gender, totalgender,
+     CASE 
+         WHEN gender= "Femme" THEN 1
+         WHEN gender= "Homme" THEN 2
+         WHEN gender= "Enfant" THEN 3
+	 WHEN gender= "Sacs"   THEN 4
+	 WHEN gender= "Accessoires" THEN 5
+         ELSE 10
+     END As rank
+from dom_gen1;
+
+-- finally from the table gender_rank and dom_gen1 we create the final dominant gender table whitout repetition on the userid
+
+DROP TABLE IF EXISTS dominant_gender;
+CREATE TABLE dominant_gender AS
+select q1.userr as userid, q2.gender as gender
+from	
+	(
+	 SELECT userr, min(rank) minrank
+	 FROM dom_genrank
+	 group by userr
+	) q1
+join dom_genrank q2 on (q1.userr=q2.userr)
+where (rank=minrank);
+
+
+---------------------------------------------------------------------------------------------
+--- Now lets do the same for create the table dominant size
+
+--
+
+-- First counting for each customer the product that he bought, and select the ones that have maximal number of purchase
+-- that give us the table next1 
+
+drop table if exists next2;
+create table next2 as
+select q1.customerid, q2.size, totalsize, maxsize
+from
+	(
+	  from
+		(
+			SELECT customerid, size, count(size) totalsize
+			From Transit
+		  	group by customerid, size
+	  	) e
+	   select e.customerid, max(totalsize) maxsize
+	   group by customerid
+	) q1
+join
+	(
+	  SELECT customerid, size, count(size) totalsize
+	  From Transit
+	  group by customerid, size
+	) q2
+on (q1.customerid=q2.customerid)
+where (totalsize=maxsize);
+
+-- Second from the table next2 we will consider a tie for the product that was purchased the last time
+Drop table if exists dom_size1;
+create table dom_size1 as
+select distinct q2.userid, q2.dsize, tmp.day
+from
+	(
+	  SELECT distinct n.customerid userid, n.size dsize, totalsize, 
+	  maxsize, ordate, lastpurchdate, t.size
+	  from
+		next2 n 
+	  	join 
+	  	transit t 
+	  	on        (n.customerid=t.customerid and n.size=t.size) 
+	  ) q2 
+join ( Select user1, max(lastpurchdate) day
+	   from 
+	  		(
+			SELECT distinct n.customerid user1, n.size dsize, totalsize, 
+	  		maxsize, ordate, lastpurchdate, t.size
+			from
+			next2 n join transit t on (n.customerid=t.customerid and n.size=t.size) 
+			) q1
+	  	group by user1
+	  ) tmp
+on q2.userid=tmp.user1 and q2.lastpurchdate=tmp.day;
+
+--3 third after considering the tie break with date, the user that still have many occurence in the table we will consider the maximal size.
+
+
+-- finally from the table gender_rank and dom_gen1 we create the final dominant gender table whitout repetition on the userid
+
+DROP TABLE IF EXISTS dominant_size;
+CREATE TABLE dominant_size AS
+select q1.userid as userid, q2.dsize as size
+from	
+	(
+	 SELECT userid, max(dsize) maxsize
+	 FROM dom_size1
+	 group by userid
+	) q1
+join dom_size1 q2 on (q1.userid=q2.userid)
+where (dsize=maxsize);
+
+
+-- Now we merge our three tables dominant_gender, dominant_size, and transit for get the table final aggregation
+-- unique userid, dominant gender, dominant size and last purchase date
+
+--  ${table7}=Customer_Aggregation
+--  ${path7}="/user/hue/data_tool/result_customer/"
+
+DROP TABLE IF EXISTS ${table7};
+CREATE TABLE IF NOT EXISTS ${table7}
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY ',' 
+STORED AS TEXTFILE
+LOCATION ${path7}
+ AS
+Select distinct g.userid, g.gender, s.size, t.lastpurchdate
+From
+	dominant_gender as g
+join
+	dominant_size as s on(g.userid=s.userid)
+join
+	transit as t on (t.customerid=g.userid);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
