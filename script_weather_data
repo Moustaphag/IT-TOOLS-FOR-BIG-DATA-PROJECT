@@ -70,3 +70,5 @@ for i in range(len(df)):
 ##
 weather.to_csv(path_or_buf="/home/moustapha/It tool /project/weather/weatherDATA.csv", sep=',', na_rep='', 
                  float_format=None, columns=None, header=True)
+               
+os.system("hdfs dfs -copyFromLocal /weatherData /home/moustapha/It tool /project/weather/)
