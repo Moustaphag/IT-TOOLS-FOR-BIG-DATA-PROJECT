@@ -5,7 +5,7 @@ import forecastio as fo
 import pandas as pd
 ##
 df= pd.read_csv("/home/moustapha/It tool /project/weather/prefecture_location.csv")
-df=pd.Dataframe({"cities": ["Bourg-en-Bresse" , "Laon" , "Ajaccio" , "Bastia" , "Moulins" , 
+df=pd.DataFrame({"cities": ["Bourg-en-Bresse" , "Laon" , "Ajaccio" , "Bastia" , "Moulins" , 
             "Digne-les-Bains" , "Gap" , "Nice" , "Privas" , "Charleville-Mezieres" , "Foix" , 
             "Troyes" , "Carcassonne" , "Rodez" , "Marseille" , "Caen" , "Aurillac" , "Angouleme" , 
             "La Rochelle" , "Bourges" , "Tulle" , "Dijon" , "Saint-Brieuc" , "Gueret" , "Perigueux" , 
