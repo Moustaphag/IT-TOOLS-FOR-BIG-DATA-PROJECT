@@ -3,12 +3,12 @@
 
   <property>
     <name>nameNode</name>
-    <value>wasb://arnabcluster@storagefrd.blob.core.windows.net</value>
+    <value>hdfs://sandbox.hortonworks.com:8020</value>
   </property>
 
   <property>
     <name>jobTracker</name>
-    <value>hn0-arnabc.stcghepkilhubipveigkd0zzrf.cx.internal.cloudapp.net:8050</value>
+    <value>sandbox.hortonworks.com:8050</value>
   </property>
 
   <property>
