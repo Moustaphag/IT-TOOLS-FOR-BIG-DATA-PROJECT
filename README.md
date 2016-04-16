@@ -35,6 +35,6 @@ Please follow the below mentioned instructions to execute the project:
 * General remark, for store the different results, the folder in which one they are going to be store should be created before.
 
 NB : 
-Take care about the permission problem
+--Take care about the permission problem
 
 --Finding for (,) and replacing by (.) in Order table  : grep -r ',' | sed 's/,/./g' Order_20151101.csv 
