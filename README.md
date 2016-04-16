@@ -1,5 +1,7 @@
 # IT-TOOLS-FOR-BIG-DATA-PROJECT
 
+#### Moustapha Ousmane Bawa Gaoh
+
 ## ABOUT THE PROJECT:
 
 
