@@ -68,7 +68,7 @@ LOCATION "/user/hue/data_tool/variant/"
 TBLPROPERTIES ("skip.header.line.count"="1");
 
 
---------------------------------------------------------------------  Table queries 
+-----------------------------------------------------------------------------------  Table queries 
 
 -- Creation of the table productreference
 
@@ -105,7 +105,7 @@ CREATE TABLE purchasedescription AS
 
 
 
----------- the query for aggregate the table product
+------------------------------------------------------------- the query for aggregate the table product
 
 DROP TABLE IF EXISTS prodagg;
 CREATE TABLE IF NOT EXISTS prodagg
@@ -314,7 +314,7 @@ from
 join dom_size1 q2 on (q1.userid=q2.userid)
 where (dsize=maxsize);
 
-
+------------------------------------------------------------------------------------------------------- final aggregation
 -- Now we merge our three tables dominant_gender, dominant_size, and transit for get the table final aggregation
 -- unique userid, dominant gender, dominant size and last purchase date
 
