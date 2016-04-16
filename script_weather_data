@@ -4,7 +4,6 @@ os.system("pip install python-forecastio")
 import forecastio as fo
 import pandas as pd
 ##
-df= pd.read_csv("/home/moustapha/It tool /project/weather/prefecture_location.csv")
 df=pd.DataFrame({"cities": ["Bourg-en-Bresse" , "Laon" , "Ajaccio" , "Bastia" , "Moulins" , 
             "Digne-les-Bains" , "Gap" , "Nice" , "Privas" , "Charleville-Mezieres" , "Foix" , 
             "Troyes" , "Carcassonne" , "Rodez" , "Marseille" , "Caen" , "Aurillac" , "Angouleme" , 
@@ -68,7 +67,14 @@ for i in range(len(df)):
         weather1= pd.DataFrame(data, index=[0], columns=col)
         weather=pd.concat([weather,weather1], ignore_index=True)
 ##
-weather.to_csv(path_or_buf="/home/moustapha/It tool /project/weather/weatherDATA.csv", sep=',', na_rep='', 
+
+## append the new table to the precedent and store it on local
+
+df= pd.read_csv("/home/weatherDATA.csv")
+weather=pd.concat([weather,df], ignore_index=True)
+## storing on local
+weather.to_csv(path_or_buf="/home/weatherDATA.csv", sep=',', na_rep='', 
                  float_format=None, columns=None, header=True)
-               
-os.system("hdfs dfs -copyFromLocal /weatherData /home/moustapha/It tool /project/weather/)
+
+## storing on HDFS
+os.system("hdfs dfs -copyFromLocal /home/weatherDATA.csv /user/hue/data_tool/result_weather")
