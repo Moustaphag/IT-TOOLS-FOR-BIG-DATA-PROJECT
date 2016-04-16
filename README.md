@@ -32,6 +32,6 @@ Please follow the below mentioned instructions to execute the project:
 5. If facing any problem, run the code from code_for_queries_hive.hql, query by query in hive, maybe the table should create at least a first time before be able to do the scheduling with oozie.
 
 
-### General remark, for store the different results, the folder in which one they are going to be store should be create before.
+* General remark, for store the different results, the folder in which one they are going to be store should be created before.
 
 NB : Also take care about the permission.
