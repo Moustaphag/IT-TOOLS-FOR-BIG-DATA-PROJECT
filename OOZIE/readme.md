@@ -23,7 +23,7 @@ The list of files are
 4. workflow
           present the order of the workflow, which operation should after another
           
-5. controller
+5. coordinator
           conrol the global work, and assign the time of the code excution.
 
 
