@@ -1,0 +1,51 @@
+<workflow-app name="useooziewf" xmlns="uri:oozie:workflow:0.2">
+  <start to = "RunHiveScript"/>
+  <action name="RunHiveScript">
+    <hive xmlns="uri:oozie:hive-action:0.2">
+      <job-tracker>${jobTracker}</job-tracker>
+      <name-node>${nameNode}</name-node>
+      <configuration>
+        <property>
+          <name>mapred.job.queue.name</name>
+          <value>${queueName}</value>
+        </property>
+      </configuration>
+      <script>${hiveScript}</script>
+      <param>table1=${table1}</param>
+      <param>path1=${path1}</param>
+      <param>table2=${table2}</param>
+      <param>path2=${path2}</param>
+      <param>table3=${table3}</param>
+      <param>path3=${path3}</param>
+      <param>table4=${table4}</param>
+      <param>path4=${path4}</param>
+      <param>table5=${table5}</param>
+      <param>path5=${path5}</param>
+      <param>path6=${path6}</param>
+      <param>path7=${path7}</param>
+    </hive>
+    <ok to="Run_Python_Script"/>
+    <error to="fail"/>
+  </action>
+  <action name="Run_Python_Script">
+	<shell xmlns="uri:oozie:shell-action:0.2">
+		<job-tracker>${jobTracker}</job-tracker>
+     		 <name-node>${nameNode}</name-node>
+      		<configuration>
+		<property>
+          	<name>mapred.job.queue.name</name>
+          	<value>${queueName}</value>
+        	</property>
+      		</configuration>
+		  <exec>${pythonScript}</exec>	
+                  <capture-output/>
+		</shell>
+                <ok to="end"/>
+                <error to="fail"/>
+   </action>
+
+  <kill name="fail">
+    <message>Job failed, error message[${wf:errorMessage(wf:lastErrorNode())}] </message>
+  </kill>
+  <end name="end"/>
+</workflow-app>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <property>
+    <name>nameNode</name>
+    <value>wasb://arnabcluster@storagefrd.blob.core.windows.net</value>
+  </property>
+
+  <property>
+    <name>jobTracker</name>
+    <value>hn0-arnabc.stcghepkilhubipveigkd0zzrf.cx.internal.cloudapp.net:8050</value>
+  </property>
+
+  <property>
+    <name>queueName</name>
+    <value>default</value>
+  </property>
+
+  <property>
+    <name>oozie.use.system.libpath</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>hiveScript</name>
+    <value>user/hue/data_tool/oozie/query_oozie.hql</value>
+  </property>
+
+   <property>
+    <name>pythonScript</name>
+    <value>user/hue/data_tool/oozie/script_weather_oozie.py</value>
+  </property>
+
+  <property>
+    <name>table1</name>
+    <value>catalogue</value>
+  </property>
+
+  <property>
+    <name>path1</name>
+    <value>/user/hue/data_tool/catalogue/</value>
+  </property>
+
+  <property>
+    <name>table2</name>
+    <value>customer</value>
+  </property>
+
+  <property>
+    <name>path2</name>
+    <value>/user/hue/data_tool/customer/</value>
+  </property>
+
+  <property>
+    <name>table3</name>
+    <value>order1</value>
+  </property>
+
+  <property>
+    <name>path3</name>
+    <value>/user/hue/data_tool/order1/</value>
+  </property>
+
+   <property>
+    <name>table4</name>
+    <value>reference</value>
+  </property>
+
+  <property>
+    <name>path4</name>
+    <value>/user/hue/data_tool/reference/</value>
+  </property>
+
+   <property>
+    <name>table5</name>
+    <value>variant</value>
+  </property>
+
+  <property>
+    <name>hiveDataFolder5</name>
+    <value>/user/hue/data_tool/variant/</value>
+  </property>
+
+  <property>
+    <name>path6</name>
+    <value>/user/hue/data_tool/result_product/</value>
+  </property>
+
+   <property>
+    <name>path7</name>
+    <value>/user/hue/data_tool/result_customer/</value>
+  </property>
+
+<property>
+    <name>path8</name>
+    <value>/user/hue/data_tool/result_weather/weatherDATA.csv</value> 
+  </property>
+
+  <property>
+    <name>user.name</name>
+    <value>admin</value>
+  </property>
+
+  <property>
+    <name>oozie.coord.application.path</name>
+    <value>user/hue/data_tool/oozie/</value>
+  </property>
+</configuration>
