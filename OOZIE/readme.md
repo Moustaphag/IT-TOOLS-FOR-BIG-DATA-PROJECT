@@ -11,7 +11,7 @@ The list of files are
       file containing all the queries, with the names and path of external table modify in variable. this file
       contain all query for process the product and customer data and store them in result folder on HDFS.
   
-2. weather_oozie
+2. script_weather_oozie
       file containing the python code for fetch the weather data from forecast.io.
       For run this code for the schudiling, we assume that there are already one file containing the precedent weather and we
       append the new ones
