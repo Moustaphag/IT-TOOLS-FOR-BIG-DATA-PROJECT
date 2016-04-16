@@ -1,4 +1,3 @@
--- creation of a Database for the day 20151101
 
 -- create DATABASE IF NOT EXISTS db22;
 -- USE db22;
